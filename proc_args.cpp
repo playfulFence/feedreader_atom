@@ -19,15 +19,15 @@ Feedreader::Feedreader(int argc, char** argv)
 {
     if(argc == 1) printHelp();
 
-    this->authorViewFlag = false; 
-    this->timeViewFlag = false;
-    this->urlViewFlag = false;
+    authorViewFlag = false; 
+    timeViewFlag = false;
+    urlViewFlag = false;
 
     for(int i = 1; i < argc; i++)
     {  
         if(std::regex_match(argv[i], std::regex("http[s]?://[a-zA-Z_0-9]+\\.[a-z]+")))
         {
-            this->url = std::string(argv[i]);
+            url = new std::string(argv[i]);
             for(int x = i; x < argc; x++)
             {
                 if (argv[x+1]) argv[x] = argv[x+1];
@@ -44,51 +44,51 @@ Feedreader::Feedreader(int argc, char** argv)
         switch (getopt(argc, argv, "f:c:C:Tua"))
         {
             case 'T':
-                if (this->timeViewFlag)
+                if (timeViewFlag)
                 {
                     std::cerr << "You can set -T flag only once!\n";
                     exit(1);
                 }
-                this->timeViewFlag = true;
+                timeViewFlag = true;
                 continue;
             case 'a':
-                if (this->authorViewFlag)
+                if (authorViewFlag)
                 {
                     std::cerr << "You can set -a flag only once!\n";
                     exit(1);
                 }
-                this->authorViewFlag = true;
+                authorViewFlag = true;
                 continue;
             case 'u':
-                if (this->urlViewFlag)
+                if (urlViewFlag)
                 {
                     std::cerr << "You can set -u flag only once!\n";
                     exit(1);
                 } 
-                this->urlViewFlag = true;
+                urlViewFlag = true;
                 continue;
             case 'f':
-                if (!this->url.empty() || !this->feed.empty())
+                if (url || feed)
                 {
                     std::cerr << "You can set only URL or feedfile via -f flag.\nNOTE: \"" << optarg << "\" is a problematic place\n";
                     exit(1);
                 }
-                this->feed = std::string(optarg);
+                feed = new std::string(optarg);
                 continue;
             case 'c':
-                if (!this->certFile.empty())
+                if (certFile)
                 {
                     std::cerr << "You can set certfile (-c flag) only once.\n";
                     exit(1);
-                } else this->certFile = std::string(optarg);
+                } else certFile = new std::string(optarg);
                 continue;
             case 'C':
-                if (!this->certAddr.empty())
+                if (certAddr)
                 {
                     std::cerr << "You can set certificate directory(-C flag) only once.\n";
                     exit(1);
                 } 
-                this->certAddr = std::string(optarg);
+                certAddr = new std::string(optarg);
                 continue;
             case -1:
                 break; // end of arguments line
@@ -98,9 +98,52 @@ Feedreader::Feedreader(int argc, char** argv)
         }
         break;
     }
-    if (this->url.empty() && this->feed.empty())
+    if (!url && !feed)
     {
         std::cerr << "ERROR! URL or feedfile(-f <feedfile>) must be set!\n";
         exit(1);
     }
+}
+
+/* std::string* getUrl();
+        std::string* getFeed();
+        std::string* getCertFile();
+        std::string* getCertAddr();
+        bool writeTime();
+        bool writeAuthor();
+        bool writeUrl(); */
+
+std::string* Feedreader::getUrl()
+{
+    return url;
+}
+
+std::string* Feedreader::getFeed()
+{
+    return feed;
+}
+
+std::string* Feedreader::getCertFile()
+{
+    return certFile;
+}
+
+std::string* Feedreader::getCertAddr()
+{
+    return certAddr;
+}
+
+bool Feedreader::writeTime()
+{
+    return timeViewFlag;
+}
+
+bool Feedreader::writeAuthor()
+{
+    return authorViewFlag;
+}
+
+bool Feedreader::writeUrl()
+{
+    return urlViewFlag;
 }

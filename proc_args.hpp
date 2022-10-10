@@ -9,13 +9,22 @@
 class Feedreader{
     public:
         Feedreader(int, char**);
-        std::string url;
-        std::string feed;
-        std::string certFile;
-        std::string certAddr; 
+        std::string* url;
+        std::string* feed;
+        std::string* certFile;
+        std::string* certAddr; 
         bool timeViewFlag;
         bool authorViewFlag;
-        bool urlViewFlag;                                                                                                  
+        bool urlViewFlag;
+        
+        /* Getters */
+        std::string* getUrl();
+        std::string* getFeed();
+        std::string* getCertFile();
+        std::string* getCertAddr();
+        bool writeTime();
+        bool writeAuthor();
+        bool writeUrl();                                                                            
 };
 
 void printHelp();
