@@ -1,6 +1,6 @@
 #include <iostream>
 #include "proc_args.hpp"
-#include <fstream>
+#include "proc_url.hpp"
 #include <openssl/ssl.h>
 
 
@@ -8,10 +8,9 @@ int main(int argc, char** argv)
 {
     Feedreader feedreader(argc, argv);
 
-    if (feedreader.getUrl() && !feedreader.getCertAddr())
-    {
-        
-    }
+    Url url(feedreader);
+
+    
 
     return 0;
 }
