@@ -22,11 +22,23 @@ Feedreader::Feedreader(int argc, char** argv)
     authorViewFlag = false; 
     timeViewFlag = false;
     urlViewFlag = false;
+    url = nullptr;
+    feed = nullptr;
+    certPath = nullptr;
+    certFile = nullptr;
+
+    bool catched = false;
 
     for(int i = 1; i < argc; i++)
     {  
-        if(std::regex_match(argv[i], std::regex("http[s]?://[a-zA-Z_0-9]+\\.[a-z]+")))
+        if(std::regex_match(argv[i], std::regex("((http|https)://)(www.)?[-a-zA-Z0-9@:%._\\+~#?&//=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%._\\+~#?&//=]*)")))
         {
+            if(catched == true)
+            {
+                std::cerr << "Error! You can pass only one URL. If you want to see feed of more pages, add them to feedfile and use -f flag.\n";
+                exit(1);            
+            }
+            catched = true;
             url = new std::string(argv[i]);
             for(int x = i; x < argc; x++)
             {
@@ -83,12 +95,12 @@ Feedreader::Feedreader(int argc, char** argv)
                 } else certFile = new std::string(optarg);
                 continue;
             case 'C':
-                if (certAddr)
+                if (certPath)
                 {
                     std::cerr << "You can set certificate directory(-C flag) only once.\n";
                     exit(1);
                 } 
-                certAddr = new std::string(optarg);
+                certPath = new std::string(optarg);
                 continue;
             case -1:
                 break; // end of arguments line
@@ -108,7 +120,7 @@ Feedreader::Feedreader(int argc, char** argv)
 /* std::string* getUrl();
         std::string* getFeed();
         std::string* getCertFile();
-        std::string* getCertAddr();
+        std::string* getcertPath();
         bool writeTime();
         bool writeAuthor();
         bool writeUrl(); */
@@ -128,9 +140,9 @@ std::string* Feedreader::getCertFile()
     return certFile;
 }
 
-std::string* Feedreader::getCertAddr()
+std::string* Feedreader::getCertPath()
 {
-    return certAddr;
+    return certPath;
 }
 
 bool Feedreader::writeTime()

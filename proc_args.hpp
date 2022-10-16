@@ -12,7 +12,7 @@ class Feedreader{
         std::string* url;
         std::string* feed;
         std::string* certFile;
-        std::string* certAddr; 
+        std::string* certPath; 
         bool timeViewFlag;
         bool authorViewFlag;
         bool urlViewFlag;
@@ -21,7 +21,7 @@ class Feedreader{
         std::string* getUrl();
         std::string* getFeed();
         std::string* getCertFile();
-        std::string* getCertAddr();
+        std::string* getCertPath();
         bool writeTime();
         bool writeAuthor();
         bool writeUrl();                                                                            

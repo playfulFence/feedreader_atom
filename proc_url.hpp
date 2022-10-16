@@ -3,11 +3,31 @@
 
 #include <vector>
 #include <fstream>
+#include <regex>
+#include <stdlib.h>
 #include "proc_args.hpp"
-class Url {
+
+class UrlDesc
+{
+    public:
+        UrlDesc(std::string);
+        std::string* fullUrl;
+        std::string* scheme;
+        std::string* authority;
+        std::string* port;
+        std::string* path;
+        std::string* getFullUrl();
+        std::string* getScheme();
+        std::string* getAuthority();
+        std::string* getPort();
+        std::string* getPath(); 
+};
+
+class UrlList {
     public: 
-        Url(Feedreader);
-        std::vector<std::string> urls;
+        UrlList(Feedreader);
+        std::vector<UrlDesc*> urls;
+        UrlDesc* getRecord(size_t);
 };
 
 
