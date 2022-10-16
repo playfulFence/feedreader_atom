@@ -12,6 +12,7 @@ UrlDesc::UrlDesc(std::string toPush)
     port = new std::string(sm[3]);
     path = new std::string(sm[4]);    
 
+    /* If port isn't in URL, setting it up manually accorgind to used protocol*/
     if(port->empty()) port = !strcmp(scheme->c_str(), "http") ? new std::string("80") : new std::string("443");
 }
 
