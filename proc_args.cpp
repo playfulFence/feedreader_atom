@@ -1,3 +1,11 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * 
+
+Project : Feedreader of Atom and RSS feeds with TLS support
+
+File : proc_args.cpp
+
+Author : Mikhailov Kirill (xmikha00)
+* * * * * * * * * * * * * * * * * * * * * * * * * * */
 #include "proc_args.hpp"
 
 void printHelp()
@@ -15,8 +23,10 @@ void printHelp()
 }
 
 
-Feedreader::Feedreader(int argc, char** argv)
-{
+/* Class builder */
+Arguments::Arguments(int argc, char** argv)
+{   
+    /* No arguments - print help */
     if(argc == 1) printHelp();
 
     authorViewFlag = false; 
@@ -27,6 +37,7 @@ Feedreader::Feedreader(int argc, char** argv)
     certPath = nullptr;
     certFile = nullptr;
 
+    /* for check if user set only one URL (if without -f flag) */
     bool catched = false;
 
     for(int i = 1; i < argc; i++)
@@ -40,6 +51,8 @@ Feedreader::Feedreader(int argc, char** argv)
             }
             catched = true;
             url = new std::string(argv[i]);
+
+            /* if URL was found - just "cutting" it off from the arguments line */
             for(int x = i; x < argc; x++)
             {
                 if (argv[x+1]) argv[x] = argv[x+1];
@@ -52,7 +65,7 @@ Feedreader::Feedreader(int argc, char** argv)
     }
         
     while (1)
-    {
+    {   /* catching Tua flags WITHOUT flags and f, c, C flags WITH flags */
         switch (getopt(argc, argv, "f:c:C:Tua"))
         {
             case 'T':
@@ -80,6 +93,7 @@ Feedreader::Feedreader(int argc, char** argv)
                 urlViewFlag = true;
                 continue;
             case 'f':
+                /* if URL or feed was already set, user can't set another one */
                 if (url || feed)
                 {
                     std::cerr << "You can set only URL or feedfile via -f flag.\nNOTE: \"" << optarg << "\" is a problematic place\n";
@@ -117,45 +131,38 @@ Feedreader::Feedreader(int argc, char** argv)
     }
 }
 
-/* std::string* getUrl();
-        std::string* getFeed();
-        std::string* getCertFile();
-        std::string* getcertPath();
-        bool writeTime();
-        bool writeAuthor();
-        bool writeUrl(); */
-
-std::string* Feedreader::getUrl()
+/* GETTERS */
+std::string* Arguments::getUrl()
 {
     return url;
 }
 
-std::string* Feedreader::getFeed()
+std::string* Arguments::getFeed()
 {
     return feed;
 }
 
-std::string* Feedreader::getCertFile()
+std::string* Arguments::getCertFile()
 {
     return certFile;
 }
 
-std::string* Feedreader::getCertPath()
+std::string* Arguments::getCertPath()
 {
     return certPath;
 }
 
-bool Feedreader::writeTime()
+bool Arguments::writeTime()
 {
     return timeViewFlag;
 }
 
-bool Feedreader::writeAuthor()
+bool Arguments::writeAuthor()
 {
     return authorViewFlag;
 }
 
-bool Feedreader::writeUrl()
+bool Arguments::writeUrl()
 {
     return urlViewFlag;
 }

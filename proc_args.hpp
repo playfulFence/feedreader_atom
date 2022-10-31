@@ -1,3 +1,13 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * 
+
+Project : Feedreader of Atom and RSS feeds with TLS support
+
+File : proc_args.hpp
+
+Author : Mikhailov Kirill (xmikha00)
+* * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+
 #ifndef __PROC_ARGS__H__
 #define __PROC_ARGS__H__
 
@@ -6,9 +16,9 @@
 #include <string>
 #include <regex>
 
-class Feedreader{
+class Arguments{
     public:
-        Feedreader(int, char**);
+        Arguments(int, char**);
         std::string* url;
         std::string* feed;
         std::string* certFile;
@@ -28,7 +38,6 @@ class Feedreader{
 };
 
 void printHelp();
-// Feedreader* collectInput(int, char**);
 
 
 #endif // __PROC_ARGS__H__

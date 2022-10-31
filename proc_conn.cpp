@@ -1,12 +1,20 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * 
+
+Project : Feedreader of Atom and RSS feeds with TLS support
+
+File : proc_conn.cpp
+
+Author : Mikhailov Kirill (xmikha00)
+* * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 #include "proc_conn.hpp"
 #include <openssl/bio.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
-Connection::Connection(UrlList urlList, Feedreader feedreader)
+Connection::Connection(UrlList urlList, Arguments arguments)
 {
     /*Initialize OpenSSL*/
-
     SSL_load_error_strings();
     ERR_load_BIO_strings();
     OpenSSL_add_all_algorithms();
@@ -21,7 +29,7 @@ Connection::Connection(UrlList urlList, Feedreader feedreader)
     for(int i = 0; i < urlList.urls.size(); i++)
     {
 
-         /* Create an authority of a correct format for following connecting attempt and HTTP request */
+        /* Create an authority of a correct format for following connecting attempt and HTTP request */
         std::string hostPort = *urlList.getRecord(i)->getAuthority() + ":" + *urlList.getRecord(i)->getPort();
 
         /* Secured connection */
@@ -33,17 +41,17 @@ Connection::Connection(UrlList urlList, Feedreader feedreader)
             /* For status storing */
             int ca_load_status = 0; 
 
-            /* Setting up certificates accoring to application flags (if no -c nor -C flag was set, use default path) */
-            if (feedreader.getCertPath() && feedreader.getCertFile()) 
-                ca_load_status = SSL_CTX_load_verify_locations(ctx, feedreader.getCertFile()->c_str(), feedreader.getCertPath()->c_str());
+            /* Setting up certificates according to application flags (if no -c nor -C flag was set, use default path) */
+            if (arguments.getCertPath() && arguments.getCertFile()) 
+                ca_load_status = SSL_CTX_load_verify_locations(ctx, arguments.getCertFile()->c_str(), arguments.getCertPath()->c_str());
 
-            else if (!feedreader.getCertPath() && feedreader.getCertFile()) 
-                ca_load_status = SSL_CTX_load_verify_locations(ctx, feedreader.getCertFile()->c_str(), NULL);
+            else if (!arguments.getCertPath() && arguments.getCertFile()) 
+                ca_load_status = SSL_CTX_load_verify_locations(ctx, arguments.getCertFile()->c_str(), NULL);
 
-            else if (feedreader.getCertPath() && !feedreader.getCertFile()) 
-                ca_load_status = SSL_CTX_load_verify_locations(ctx, NULL, feedreader.getCertPath()->c_str());
+            else if (arguments.getCertPath() && !arguments.getCertFile()) 
+                ca_load_status = SSL_CTX_load_verify_locations(ctx, NULL, arguments.getCertPath()->c_str());
 
-            else if (!feedreader.getCertPath() && !feedreader.getCertFile())
+            else if (!arguments.getCertPath() && !arguments.getCertFile())
                 ca_load_status = SSL_CTX_set_default_verify_paths(ctx);
 
             if(!ca_load_status)
@@ -93,9 +101,9 @@ Connection::Connection(UrlList urlList, Feedreader feedreader)
             continue;
         }
 
+        /* Building a HTTP request to get XML (at least as expected) */
         std::string httpRequest("GET " + *urlList.getRecord(i)->getPath() + " HTTP/1.0\r\n"
                               "Host: " + hostPort + "\r\n"
-                              "Connection: close\n\n" // close by default since there's no need in "keep-alive" for us 
                               "\r\n");
 
         
@@ -121,13 +129,17 @@ Connection::Connection(UrlList urlList, Feedreader feedreader)
             std::cerr << "Sending request to " << *urlList.getRecord(i)->getFullUrl() << " failed. Ignoring...\n\n";
             continue;
         }
-
-        char buf[512] = {'\0'};
+        
+        /* I will receive "portions" of 512 chars since.
+           No smart reason, just not so big, not so small... */
+        char buf[512];
         bool readDone = false;
         std::string response;
         int read = 0;
         
         while (!readDone) {
+            
+            /* returns amount of data read successfully, 0 when nothing to read, < 0 when error */
             read = BIO_read(bio, buf, 511);
             if (read == 0) readDone = true;
             else if (read < 0)
@@ -143,21 +155,24 @@ Connection::Connection(UrlList urlList, Feedreader feedreader)
             }
         }
 
-        if(!readDone)
+        /* read variable might be 0 after only one while loop and jump out of it, so
+            i need to check, if it was 0 because there's nothing to read (=> response is empty) or beacause
+            the response was read whole successfully. */
+        if(!readDone || response.empty())
         {
             std::cerr << "Receiving response from " << *urlList.getRecord(i)->getFullUrl() << " failed. Ignoring...\n";
             continue;
         }
 
+        /* Rudely find the xml file, since we're not interested in another content.
+            If not found - ignore and process next link. */
         int xmlStartPos = response.find("<?xml");
         if (xmlStartPos == std::string::npos)
         {
             std::cerr << "Couldn't identificate XML-feed in " << *urlList.getRecord(i)->getFullUrl() << ". Next...\n";
             continue;        
         }
-
-        std::string httpHeader = response.substr(0, xmlStartPos);
-
+        /* push received and filtered XML to the vector of XMLs */
         xmls.push_back(new std::string(response.substr(xmlStartPos, response.length()))); 
     }
 

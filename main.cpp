@@ -1,44 +1,28 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * 
+
+Project : Feedreader of Atom and RSS feeds with TLS support
+
+File : main.cpp
+
+Author : Mikhailov Kirill (xmikha00)
+* * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 #include <iostream>
 #include "proc_args.hpp"
-#include "proc_url.hpp"
+#include "proc_url.hpp" 
 #include "proc_conn.hpp"
-
-
-#include <libxml/parser.h>
-#include <libxml/tree.h>
+#include "proc_xml.hpp"
 
 int main(int argc, char** argv)
 {
-    Feedreader feedreader(argc, argv);
+    /* Parse arguments */
+    Arguments arguments(argc, argv);
+    /* Create list of structured data about URLs */
+    UrlList urlList(arguments);
+    /* Set connection to all URLs from the list above with all cert. checks (if required) and send request for XML */
+    Connection connection(urlList, arguments);
+    /* Parse XMLs and print out formatted */
+    Feed feed(connection, arguments, urlList);
 
-    UrlList urlList(feedreader);
-
-    Connection connection(urlList, feedreader);
-
-    std::cout << *connection.getXml(0);
-
-    // xmlDocPtr doc = xmlParseDoc((const xmlChar *) xmlDoc.c_str());
-
-    //     if(!doc)
-    //     {
-    //         std::cerr << "XML document from " << *urlList.getRecord(i)->getFullUrl() << " wasn't parsed. Next...\n";
-    //         /* Free globals */
-    //         xmlCleanupParser();
-    //         continue;
-    //     }
-
-    //     xmlNodePtr cur = xmlDocGetRootElement(doc); 
-
-    //     if(!cur)
-    //     {
-    //         std::cout << "Can't get root element from " << *urlList.getRecord(i)->getFullUrl() << " XML doc. Probably invalid formatting. Next...\n";
-    //         xmlFreeDoc(doc);
-    //         xmlCleanupParser();
-    //         continue;
-    //     }
-
-    //     bool isAtom = false;
-
-    //     if (cur->name == (const xmlChar*)"feed") isAtom = true;
-    //     else if (cur->name == (const xmlChar*)"rss") isAtom = false;
+    return 0;
 }

@@ -1,3 +1,12 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * 
+
+Project : Feedreader of Atom and RSS feeds with TLS support
+
+File : proc_url.cpp
+
+Author : Mikhailov Kirill (xmikha00)
+* * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 #include "proc_url.hpp"
 
 UrlDesc::UrlDesc(std::string toPush)
@@ -41,22 +50,24 @@ std::string* UrlDesc::getPath()
     return path;
 }
 
-UrlList::UrlList(Feedreader feedreader)
-{
-    if (!feedreader.getUrl() && feedreader.getFeed())
+UrlList::UrlList(Arguments arguments)
+{   
+    /* If feedfile, but not specific URL was set*/
+    if (!arguments.getUrl() && arguments.getFeed())
     { 
-        std::ifstream feedFile(*feedreader.feed);
+        std::ifstream feedFile(*arguments.feed);
         if (!feedFile.is_open())
         {
-            std::cerr << "Unable to open feedfile, bad path : " << *feedreader.feed << std::endl;
+            std::cerr << "Unable to open feedfile, bad path : " << *arguments.feed << std::endl;
             exit(2);
         }
 
         std::string tmp;
-        for (int i = 1 ;getline(feedFile, tmp); i++)
+        for (int i = 1; getline(feedFile, tmp); i++)
         {
+            /* Skip comments (#-starting lines) and empty lines at feedfile */
             if(tmp[0] == '#' || tmp.empty()) continue;
-            else if(std::regex_match(tmp, std::regex("^([^:/?#]+)://([^/?#]*)?([^?#]*)(\\?([^#]*))?(#(.*))?")))
+            else if(std::regex_match(tmp, std::regex("((http|https)://)(www.)?[-a-zA-Z0-9@:%._\\+~#?&//=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%._\\+~#?&//=]*)")))
                 {
                     UrlDesc* newRecord = new UrlDesc(tmp);
                     urls.push_back(newRecord);       
@@ -67,13 +78,15 @@ UrlList::UrlList(Feedreader feedreader)
 
         feedFile.close();
     }
+    /* If only single URL was set */
     else 
     {
-        UrlDesc* newRecord = new UrlDesc(*feedreader.url);
+        UrlDesc* newRecord = new UrlDesc(*arguments.url);
         urls.push_back(newRecord); 
     }
 }
 
+/* get Url on a specific index */
 UrlDesc* UrlList::getRecord(size_t index)
 {
     return urls[index];
