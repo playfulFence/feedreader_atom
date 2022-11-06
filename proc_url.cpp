@@ -14,15 +14,15 @@ UrlDesc::UrlDesc(std::string toPush)
     std::smatch sm;
     std::regex_match(toPush, sm, std::regex("^([^:/?#]+)://([^/?:#]*)?:?([0-9]+)?([^?#]*)(\\?([^#]*))?(#(.*))?"));
                                            /* 1            2            3        4       5   6        7*/
-    
+
     fullUrl = new std::string(sm[0]);
     scheme = new std::string(sm[1]);
     authority = new std::string(sm[2]);
-    port = new std::string(sm[3]);
+    port = (sm[3] != "") ? new std::string(sm[3]) : nullptr;
     path = new std::string(sm[4]);    
 
     /* If port isn't in URL, setting it up manually accorgind to used protocol*/
-    if(port->empty()) port = !strcmp(scheme->c_str(), "http") ? new std::string("80") : new std::string("443");
+    if(port == nullptr) port = !strcmp(scheme->c_str(), "http") ? new std::string("80") : new std::string("443");
 }
 
 std::string* UrlDesc::getFullUrl()

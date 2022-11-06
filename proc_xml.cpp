@@ -14,7 +14,11 @@ Author : Mikhailov Kirill (xmikha00)
 
 Feed::Feed(Connection connection, Arguments arguments, UrlList urlList)
 {
-    xmlDocPtr doc;
+    xmlDocPtr doc; 
+    
+    /* Actually not a smartest solution, but I did it when the whole code structure
+        was ready, so yeah, sorry :S */
+    bool firstXml = true;
     for(int i = 0; i < connection.xmls.size(); i++)
     {
         /* initialize xml document */
@@ -42,40 +46,57 @@ Feed::Feed(Connection connection, Arguments arguments, UrlList urlList)
         if (!xmlStrcmp(root->name, (const xmlChar*)"feed")) 
         {
             xmlNodePtr rootChild = root->children;
-            std::string title;
+            char* allocated = NULL;
             /* First of all, find the common title to write it out in triple "*" sign */
             while (rootChild)
             {   
                 if(!xmlStrcmp(rootChild->name, (const xmlChar*)"title"))
                 {   
                     /* title = (char*) cur->content not working! */
-                    title = (char*)xmlNodeGetContent(rootChild);
+                    allocated = (char*)xmlNodeGetContent(rootChild);
                     break;
                 }
                 rootChild = rootChild->next;
             }
-            if(title.empty())
+            if(!allocated)
             {
                 std::cerr << "Can't get feed title. Next...\n";
                 xmlFreeDoc(doc);
                 xmlCleanupParser();
                 continue;
             }
-            std::cout << "*** " << title << " ***" << std::endl;
+            /* Correct formatting stuff */
+            if(firstXml) firstXml = false;
+            else std::cout << std::endl;
+            std::cout << "*** " << allocated << " ***" << std::endl;
+            free(allocated);
 
             /* Get back to root childrens to search "entries" */
             rootChild = root->children;
+            bool firstRun = true;
             while (rootChild)
             {
                 if(!xmlStrcmp(rootChild->name, (const xmlChar*)"entry"))
                 {   
+                    if(firstRun) firstRun = false;
+                    /* To be correctly formatted and separated */
+                    else if(arguments.writeAuthor() || arguments.writeTime() || arguments.writeUrl())
+                        std::cout << std::endl;
+
                     xmlNodePtr entryChild = rootChild->children;
+
+                    /* Actually not a smartest solution, but I did it when the whole code structure
+                        was ready, so yeah, sorry :S */
+                    bool updateViewed = false;
                     while (entryChild)
                     {
                         /* Find entries titles (actual news, topics titles (if I understood it correctly)) */
                         if (!xmlStrcmp(entryChild->name, (const xmlChar*)"title"))
-                            std::cout << xmlNodeGetContent(entryChild) << std::endl;
-
+                        {   
+                            allocated = (char*)xmlNodeGetContent(entryChild);
+                            std::cout << allocated << std::endl;
+                            free(allocated);
+                        }
                         /* If author printing is required */                       
                         if (arguments.writeAuthor())
                         {
@@ -84,13 +105,22 @@ Feed::Feed(Connection connection, Arguments arguments, UrlList urlList)
                                 /* Need to go deeper into "author" node, since in Atom name and 
                                     email are separated to two more nodes */
                                 xmlNodePtr authorChild = entryChild->children;
+                                bool nameIsSet = false;
                                 while (authorChild)
                                 {
                                     if(!xmlStrcmp(authorChild->name, (const xmlChar*)"name"))
-                                        std::cout << "Author's name : " << xmlNodeGetContent(authorChild) << std::endl;
-                                    if(!xmlStrcmp(authorChild->name, (const xmlChar*)"email"))
-                                        std::cout << "Author's email: " << xmlNodeGetContent(authorChild) << std::endl;
-
+                                    {
+                                        nameIsSet = true;
+                                        allocated = (char*)xmlNodeGetContent(authorChild);
+                                        std::cout << "Autor: " << allocated << std::endl;
+                                        free(allocated);
+                                    }
+                                    if(!xmlStrcmp(authorChild->name, (const xmlChar*)"email") && !nameIsSet)
+                                    {
+                                        allocated = (char*)xmlNodeGetContent(authorChild);
+                                        std::cout << "Autor: " << allocated << std::endl;
+                                        free(allocated);
+                                    }
                                     authorChild = authorChild->next;
                                 }
                                 
@@ -100,10 +130,18 @@ Feed::Feed(Connection connection, Arguments arguments, UrlList urlList)
                         if (arguments.writeTime())
                         {
                             if(!xmlStrcmp(entryChild->name, (const xmlChar*)"updated"))
-                                std::cout << "Last updated: " << xmlNodeGetContent(entryChild) << std::endl;
-                            
-                            if (!xmlStrcmp(entryChild->name, (const xmlChar*)"published"))
-                                std::cout << "Published: " << xmlNodeGetContent(entryChild) << std::endl;
+                            {
+                                updateViewed = true;
+                                allocated = (char*)xmlNodeGetContent(entryChild);
+                                std::cout << "Aktualizace: " << allocated << std::endl;
+                                free(allocated);
+                            }
+                            if (!xmlStrcmp(entryChild->name, (const xmlChar*)"published") && !updateViewed)
+                            {
+                                allocated = (char*)xmlNodeGetContent(entryChild);
+                                std::cout << "Aktualizace: " << allocated << std::endl;
+                                free(allocated);
+                            }
                         }
                         /* And finally corresponding URL */
                         if (arguments.writeUrl())
@@ -115,8 +153,6 @@ Feed::Feed(Connection connection, Arguments arguments, UrlList urlList)
                         entryChild = entryChild->next;
                     }
                     
-                    /* To be correctly formatted and separated */
-                    std::cout << std::endl;
                 }
                 rootChild = rootChild->next;
             }
@@ -127,38 +163,44 @@ Feed::Feed(Connection connection, Arguments arguments, UrlList urlList)
         else if (!xmlStrcmp(root->name, (const xmlChar*)"rss"))
         {
             xmlNodePtr rootChild = root->children;
-
+            char* allocated;
             /* Almost same here, but to find common title, we need to deepen into "channel" node*/
             while(rootChild) 
             {   
                 if(!xmlStrcmp(rootChild->name, (const xmlChar*)"channel"))
                 {   
                     xmlNodePtr channelChild = rootChild->children;
-                    std::string title;
+                    
                     while(channelChild)
                     {
                         /* Here it is! */
                         if(!xmlStrcmp(channelChild->name, (const xmlChar*)"title"))
                         {   
                             /* title = (char*) cur->content not working! */
-                            title = (char*)xmlNodeGetContent(channelChild);
+                            allocated = (char*)xmlNodeGetContent(channelChild);
                             break;
                         }
                         channelChild = channelChild->next;
                     }
 
-                    if(title.empty())
+                    if(!allocated)
                     {
                         std::cerr << "Can't get feed title. Next...\n";
                         xmlFreeDoc(doc);
                         xmlCleanupParser();
                         continue;
                     }
-                    std::cout << "*** " << title << " ***" << std::endl;
+                    /* Correct formatting stuff */
+                    if(firstXml) firstXml = false;
+                    else std::cout << std::endl;
+
+                    std::cout << "*** " << allocated << " ***" << std::endl;
+                    free(allocated);
                 }
                 rootChild = rootChild->next;
             }
             rootChild = root->children;
+            bool firstRun = true;
             /* Dive into the XML tree again*/
             while (rootChild)
             {
@@ -172,36 +214,51 @@ Feed::Feed(Connection connection, Arguments arguments, UrlList urlList)
                         {
                             xmlNodePtr itemChild = channelChild->children;
 
+                            if(firstRun) firstRun = false;
+                            /* To be correctly formatted and separated */
+                            else if(arguments.writeAuthor() || arguments.writeTime() || arguments.writeUrl())
+                                std::cout << std::endl;
+
                             /* So much similar to Atom parsing in this part, so no need to explain here, I guess */
                             while(itemChild)
                             {
                                 if(!xmlStrcmp(itemChild->name, (const xmlChar*)"title"))
-                                    std::cout << xmlNodeGetContent(itemChild) << std::endl;      
-
-
+                                {
+                                    allocated = (char*)xmlNodeGetContent(itemChild);
+                                    std::cout << allocated << std::endl;
+                                    free(allocated);
+                                }                    
                                 if (arguments.writeAuthor())
                                 {
                                     if(!xmlStrcmp(itemChild->name, (const xmlChar*)"author"))
                                     {
-                                        std::cout << "Author: " << xmlNodeGetContent(itemChild) << std::endl;                   
+                                        allocated = (char*)xmlNodeGetContent(itemChild);
+                                        std::cout << "Autor: " << allocated << std::endl;                 
+                                        free(allocated);
                                     }
                                 }
                                 if (arguments.writeTime())
                                 {
                                     if(!xmlStrcmp(itemChild->name, (const xmlChar*)"pubDate"))
-                                        std::cout << "Published: " << xmlNodeGetContent(itemChild) << std::endl;                                
+                                    {
+                                        allocated = (char*)xmlNodeGetContent(itemChild);
+                                        std::cout << "Aktualizace: " << allocated << std::endl;                 
+                                        free(allocated);
+                                    }
                                 }
 
                                 if (arguments.writeUrl())
                                 {
                                     if(!xmlStrcmp(itemChild->name, (const xmlChar*)"link"))
-                                        std::cout << "URL: " << xmlNodeGetContent(itemChild) << std::endl;
+                                    {
+                                        allocated = (char*)xmlNodeGetContent(itemChild);
+                                        std::cout << "URL: " << allocated << std::endl;                 
+                                        free(allocated);
+                                    }
                                 }
 
                                 itemChild = itemChild->next;
                             }
-                            /* To be correctly formatted and separated */
-                            std::cout << std::endl;
                         }
 
                         channelChild = channelChild->next;
@@ -215,11 +272,31 @@ Feed::Feed(Connection connection, Arguments arguments, UrlList urlList)
             std::cout << "Unsupported feedtype for " << *urlList.getRecord(i)->getFullUrl() << std::endl;
             continue;
         }
-        
+
+        /* Clean XML stuff */    
+        xmlFreeDoc(doc);
+        xmlCleanupParser();
     }
+
+    if(arguments.url) delete arguments.url;
+    if(arguments.feed) delete arguments.feed;
+    if(arguments.certFile) delete arguments.certFile;
+    if(arguments.certPath) delete arguments.certPath;
+
+    for(int i = 0; i < urlList.urls.size(); i++)
+    {
+        if(urlList.getRecord(i)->fullUrl) delete urlList.getRecord(i)->fullUrl;
+        if(urlList.getRecord(i)->scheme) delete urlList.getRecord(i)->scheme;
+        if(urlList.getRecord(i)->authority) delete urlList.getRecord(i)->authority;
+        if(urlList.getRecord(i)->port) delete urlList.getRecord(i)->port;
+        if(urlList.getRecord(i)->path) delete urlList.getRecord(i)->path;
+        delete urlList.getRecord(i);
+    }
+
+    for(int i = 0; i < connection.xmls.size(); i++) delete connection.getXml(i);
+
+
     
-    /* Clean XML stuff */    
-    xmlFreeDoc(doc);
-    xmlCleanupParser();
+    
 }
 

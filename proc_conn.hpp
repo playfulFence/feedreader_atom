@@ -18,6 +18,7 @@ class Connection
     public:
         Connection(UrlList, Arguments);
         std::vector<std::string*> xmls;
+
         std::string* getXml(size_t);
 };
 

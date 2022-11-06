@@ -12,9 +12,11 @@ Author : Mikhailov Kirill (xmikha00)
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
+
 Connection::Connection(UrlList urlList, Arguments arguments)
 {
     /*Initialize OpenSSL*/
+    SSL_library_init();
     SSL_load_error_strings();
     ERR_load_BIO_strings();
     OpenSSL_add_all_algorithms();
@@ -132,7 +134,7 @@ Connection::Connection(UrlList urlList, Arguments arguments)
         
         /* I will receive "portions" of 512 chars since.
            No smart reason, just not so big, not so small... */
-        char buf[512];
+        char buf[512] = "\0";
         bool readDone = false;
         std::string response;
         int read = 0;
@@ -141,14 +143,18 @@ Connection::Connection(UrlList urlList, Arguments arguments)
             
             /* returns amount of data read successfully, 0 when nothing to read, < 0 when error */
             read = BIO_read(bio, buf, 511);
-            if (read == 0) readDone = true;
+            if (read == 0) 
+            {
+                readDone = true;
+                response[response.length()] = '\0';
+            }
             else if (read < 0)
             {
                 if(BIO_should_retry(bio)) continue;
                 else break;
             }
             else if (read > 0) 
-            {
+            { 
                 response += buf;
                 /* refresh buffer */
                 std::fill_n(buf, 512, '\0');
@@ -156,7 +162,7 @@ Connection::Connection(UrlList urlList, Arguments arguments)
         }
 
         /* read variable might be 0 after only one while loop and jump out of it, so
-            i need to check, if it was 0 because there's nothing to read (=> response is empty) or beacause
+            I need to check, if it was 0 because there's nothing to read (=> response is empty) or beacause
             the response was read whole successfully. */
         if(!readDone || response.empty())
         {
@@ -166,17 +172,16 @@ Connection::Connection(UrlList urlList, Arguments arguments)
 
         /* Rudely find the xml file, since we're not interested in another content.
             If not found - ignore and process next link. */
-        int xmlStartPos = response.find("<?xml");
+        int xmlStartPos = response.find("\r\n\r\n");
         if (xmlStartPos == std::string::npos)
         {
             std::cerr << "Couldn't identificate XML-feed in " << *urlList.getRecord(i)->getFullUrl() << ". Next...\n";
             continue;        
         }
+        
         /* push received and filtered XML to the vector of XMLs */
-        xmls.push_back(new std::string(response.substr(xmlStartPos, response.length()))); 
+        xmls.push_back(new std::string(response.substr(xmlStartPos, response.length())));
     }
-
-
     BIO_free_all(bio);
     SSL_CTX_free(ctx);
 }
