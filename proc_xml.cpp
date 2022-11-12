@@ -12,8 +12,27 @@ Author : Mikhailov Kirill (xmikha00)
 #include <libxml/parser.h>
 #include <libxml/tree.h>
 
+
+/* Set NULL didn't help, so need to use this non-smart solution, but at least it works... */
+void xmlGenericReplacer(void *ctx, const char *msg, ...)
+{
+	(void) ctx;
+	(void) msg;
+}
+
+void xmlStructuredReplacer(void *userData, xmlErrorPtr error)
+{
+	(void) userData;
+	(void) error;
+}
+
 Feed::Feed(Connection connection, Arguments arguments, UrlList urlList)
 {
+
+    /* Turn debuging functions off to avoid extra outputs */
+    xmlSetGenericErrorFunc(NULL, xmlGenericReplacer);
+    xmlSetStructuredErrorFunc(NULL, xmlStructuredReplacer);
+
     xmlDocPtr doc; 
     
     /* Actually not a smartest solution, but I did it when the whole code structure
@@ -277,7 +296,11 @@ Feed::Feed(Connection connection, Arguments arguments, UrlList urlList)
         xmlFreeDoc(doc);
         xmlCleanupParser();
     }
+    
+}
 
+void clean(Connection connection, Arguments arguments, UrlList urlList)
+{
     if(arguments.url) delete arguments.url;
     if(arguments.feed) delete arguments.feed;
     if(arguments.certFile) delete arguments.certFile;
@@ -294,9 +317,4 @@ Feed::Feed(Connection connection, Arguments arguments, UrlList urlList)
     }
 
     for(int i = 0; i < connection.xmls.size(); i++) delete connection.getXml(i);
-
-
-    
-    
 }
-

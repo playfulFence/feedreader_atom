@@ -19,4 +19,6 @@ class Feed
         Feed(Connection, Arguments, UrlList);
 };
 
+void clean(Connection, Arguments, UrlList);
+
 #endif

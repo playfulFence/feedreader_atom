@@ -24,5 +24,7 @@ int main(int argc, char** argv)
     /* Parse XMLs and print out formatted */
     Feed feed(connection, arguments, urlList);
 
+    clean(connection, arguments, urlList);
+
     return 0;
 }
