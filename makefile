@@ -1,21 +1,21 @@
-CC = g++
+CC = g++ -static-libstdc++
 
-XMLLIBS!=pkg-config --libs libxml-2.0
-XMLLIBS?=$(shell pkg-config --libs libxml-2.0)
+XMLLDFLAGS!=pkg-config --libs libxml-2.0
+XMLLDFLAGS?=$(shell pkg-config --libs libxml-2.0)
 XMLCFLAGS!=pkg-config --cflags libxml-2.0
 XMLCFLAGS?=$(shell pkg-config --cflags libxml-2.0)
 
-CPPFLAGS = -std=c++17 -g -Wall -O2 $(XMLCFLAGS) $(XMLLDFLAGS) -lssl -lcrypto
+CPPFLAGS = -std=c++17 -g -O2 $(XMLCFLAGS)
 all: feedreader
 
 feedreader : feedreader.o proc_args.o proc_url.o proc_conn.o proc_xml.o
-			$(CC) $(CPPFLAGS) feedreader.o proc_args.o proc_url.o proc_conn.o proc_xml.o -o feedreader
+			$(CC) $(CPPFLAGS) -lcrypto -lssl $(XMLLDFLAGS) feedreader.o proc_args.o proc_url.o proc_conn.o proc_xml.o -o feedreader
 feedreader.o : feedreader.cpp
 			$(CC) $(CPPFLAGS) -c feedreader.cpp
 proc_xml.o : proc_xml.cpp proc_xml.hpp proc_conn.hpp
-			$(CC) $(CPPFLAGS) -c proc_xml.cpp						
+			$(CC) $(CPPFLAGS) $(XMLLDFLAGS) -c proc_xml.cpp						
 proc_conn.o : proc_conn.cpp proc_conn.hpp proc_url.hpp proc_args.hpp
-			$(CC) $(CPPFLAGS) -c proc_conn.cpp
+			$(CC) $(CPPFLAGS) -lcrypto -lssl -c proc_conn.cpp
 proc_url.o : proc_url.cpp proc_url.hpp proc_args.hpp
 			$(CC) $(CPPFLAGS) -c proc_url.cpp
 proc_args.o : proc_args.cpp proc_args.hpp

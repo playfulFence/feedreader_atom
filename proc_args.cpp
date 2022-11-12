@@ -127,6 +127,7 @@ Arguments::Arguments(int argc, char** argv)
     if (!url && !feed)
     {
         std::cerr << "ERROR! URL or feedfile(-f <feedfile>) must be set!\n";
+        printHelp();
         exit(1);
     }
 }
