@@ -178,8 +178,6 @@ Connection::Connection(UrlList urlList, Arguments arguments)
             std::cerr << "Couldn't identificate XML-feed in " << *urlList.getRecord(i)->getFullUrl() << ". Next...\n";
             continue;        
         }
-
-        //std::cout << response.substr(xmlStartPos + 4, response.length());
         
         /* push received and filtered XML to the vector of XMLs */
         xmls.push_back(new std::string(response.substr(xmlStartPos + 4, response.length())));

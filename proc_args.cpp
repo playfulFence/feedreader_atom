@@ -42,6 +42,12 @@ Arguments::Arguments(int argc, char** argv)
 
     for(int i = 1; i < argc; i++)
     {  
+        if(!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help"))
+        {
+            printHelp();
+            exit(0);
+        }
+        
         if(std::regex_match(argv[i], std::regex("((http|https)://)(www.)?[-a-zA-Z0-9@:%._\\+~#?&//=]{2,256}\\.[a-z]{2,6}\\b([-a-zA-Z0-9@:%._\\+~#?&//=]*)")))
         {
             if(catched == true)
