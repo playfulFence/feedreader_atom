@@ -52,4 +52,4 @@ Projekt je realizován pomocí knihoven [OpenSSL](https://www.openssl.org/) and 
         • Při spuštění s parametrem -u se pro každý záznam zobrazí asociované URL
 
     
-    Note : if -c nor -C flag wasn't set, feedreader will use certificates from path which is returned by SSL_CTX_set_default_verify_paths()function
+    Note : pokud -c ani -C není nastaven, feedreader použije certifikáty ze složky vracené funkcí SSL_CTX_set_default_verify_paths().
