@@ -24,7 +24,7 @@ fi
 
 # second test - passing both feedfile and URL link
 
-./feedreader -f feed.txt https://www.youtube.com/watch?v=dQw4w9WgXcQ >test_outputs/test_both_sources.output 2>test_outputs/test_both_sources.stderr
+./feedreader -f test_feed.txt https://www.youtube.com/watch?v=dQw4w9WgXcQ >test_outputs/test_both_sources.output 2>test_outputs/test_both_sources.stderr
 
 if [ $? == 1 ];
 then 
@@ -70,7 +70,7 @@ fi
 
 # fourth test - bad flag
 
-./feedreader -f feed.txt -u -i >test_outputs/test_bad_flag.output 2>test_outputs/test_bad_flag.stderr
+./feedreader -f test_feed.txt -u -i >test_outputs/test_bad_flag.output 2>test_outputs/test_bad_flag.stderr
 
 if [ $? == 1 ];
 then 
@@ -87,7 +87,7 @@ fi
 
 #fifth test - same extra argument
 
-./feedreader -f feed.txt -u -u >test_outputs/test_more_than_one_u.output 2>test_outputs/test_more_than_one_u.stderr
+./feedreader -f test_feed.txt -u -u >test_outputs/test_more_than_one_u.output 2>test_outputs/test_more_than_one_u.stderr
 
 if [ $? == 1 ];
 then 
@@ -104,7 +104,7 @@ fi
 
 #sixth test - more than one -a
 
-./feedreader -f feed.txt -u -a -a >test_outputs/test_more_than_one_a.output 2>test_outputs/test_more_than_one_a.stderr
+./feedreader -f test_feed.txt -u -a -a >test_outputs/test_more_than_one_a.output 2>test_outputs/test_more_than_one_a.stderr
 
 if [ $? == 1 ];
 then 
@@ -122,7 +122,7 @@ fi
 
 #seventh test - more than one -T
 
-./feedreader -f feed.txt -u -a -T -T >test_outputs/test_more_than_one_T.output 2>test_outputs/test_more_than_one_T.stderr
+./feedreader -f test_feed.txt -u -a -T -T >test_outputs/test_more_than_one_T.output 2>test_outputs/test_more_than_one_T.stderr
 
 if [ $? == 1 ];
 then 
@@ -139,7 +139,7 @@ fi
 
 #eighth - more than one -c flag
 
-./feedreader -f feed.txt -u -a -T -c /path/to/cert -c /path/to/twice >test_outputs/test_more_than_one_c.output 2>test_outputs/test_more_than_one_c.stderr
+./feedreader -f test_feed.txt -u -a -T -c /path/to/cert -c /path/to/twice >test_outputs/test_more_than_one_c.output 2>test_outputs/test_more_than_one_c.stderr
 
 if [ $? == 1 ];
 then 
@@ -155,7 +155,7 @@ else
 fi
 
 
-./feedreader -f feed.txt -u -a -T -C /path/to/certs -C /path/to/twice >test_outputs/test_more_than_one_certaddr.output 2>test_outputs/test_more_than_one_certaddr.stderr
+./feedreader -f test_feed.txt -u -a -T -C /path/to/certs -C /path/to/twice >test_outputs/test_more_than_one_certaddr.output 2>test_outputs/test_more_than_one_certaddr.stderr
 
 if [ $? == 1 ];
 then 
