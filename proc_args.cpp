@@ -71,7 +71,8 @@ Arguments::Arguments(int argc, char** argv)
     }
         
     while (1)
-    {   /* catching Tua flags WITHOUT flags and f, c, C flags WITH flags */
+    {   
+        /* catching Tua flags WITHOUT flags and f, c, C flags WITH flags */
         switch (getopt(argc, argv, "f:c:C:Tua"))
         {
             case 'T':
@@ -102,8 +103,8 @@ Arguments::Arguments(int argc, char** argv)
                 /* if URL or feed was already set, user can't set another one */
                 if (url || feed)
                 {
-                    std::cerr << "You can set only URL or feedfile via -f flag.\nNOTE: \"" << optarg << "\" is a problematic place\n";
-                    exit(1);
+                    std::cerr << "You can set only URL or feedfile via -f flag.\n";
+                    printHelp();
                 }
                 feed = new std::string(optarg);
                 continue;
@@ -134,7 +135,6 @@ Arguments::Arguments(int argc, char** argv)
     {
         std::cerr << "ERROR! URL or feedfile(-f <feedfile>) must be set!\n";
         printHelp();
-        exit(1);
     }
 }
 

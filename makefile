@@ -22,3 +22,12 @@ proc_args.o : proc_args.cpp proc_args.hpp
 			$(CC) $(CPPFLAGS) -c proc_args.cpp
 clean:
 			rm *.o feedreader
+			rm -rf test_outputs
+test:
+			chmod 777 test.sh
+			./test.sh
+with_test:
+			make
+			make test
+clean_test: 
+			rm -rf test_outputs
